@@ -34,7 +34,10 @@ func (n PreformattedTextBlock) NuDoc() string {
 }
 
 func (n PreformattedTextBlock) HTML() template.HTML {
-	return template.HTML("<pre aria-label=\"" + n.Alt + "\">\n" + n.Pre + "</pre>")
+	return template.HTML("<div class=\"pre-block\">\n" +
+		"<pre aria-label=\"" + n.Alt + "\">\n" + n.Pre + "</pre>\n" +
+		"<div class=\"meta\"><legend>" + n.Alt + "</legend><button>Copy</button></div>\n" +
+		"</div>")
 }
 
 type Text string

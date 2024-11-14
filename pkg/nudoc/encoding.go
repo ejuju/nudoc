@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"strings"
 )
 
@@ -54,18 +55,19 @@ Outer:
 		prefix := line[0]
 		body := line[1:]
 		if len(line) > 1 && line[1] == ' ' {
-			body = line[2:]
+			body = body[1:]
 		}
 
 		switch prefix {
 		default:
 			continue // Ignore unknown line type.
 		case LinePrefixLink:
-			parts := strings.Split(body, " ")
-			if len(parts) != 2 {
+			url, label, found := strings.Cut(body, " ")
+			if !found {
+				log.Printf("invalid link: %q", line)
 				continue // Ignore invalid link.
 			}
-			doc.Nodes = append(doc.Nodes, Link{parts[0], parts[1]})
+			doc.Nodes = append(doc.Nodes, Link{url, label})
 		case LinePrefixPreformatToggle:
 			alt := body
 			content := ""

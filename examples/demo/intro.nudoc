@@ -2,8 +2,8 @@
 
 | This document is an introduction to the NuDoc hypertext format.
 |
-| NuDoc is a line-oriented format that allows you to define rich-text documents
-| using a simple syntax ressembling Gemtext and Markdown.
+| NuDoc is a line-oriented format that allows you to define
+| rich-text documents using a simple syntax ressembling Gemtext and Markdown.
 
 > How does it work?
 
@@ -19,3 +19,8 @@
 | Hello |
 +-------+
 =
+
+| Here's an example of links:
+@ /about Go to some other page in the same origin.
+@ nudoc://nudoc.example/some-page Go to some other page on a different origin.
+@ https://example.org Go to some HTTP page.

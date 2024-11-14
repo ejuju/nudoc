@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .Title }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; color: inherit; }
+        body { background-color: #111; color: #eee; } 
+        main { padding: 16px; max-width: 500px; margin: 0 auto; }
+        a { margin-top: 0.5em; display: block; }
+	    h1 { margin: 1.5em 0 1em; color: #fff; }
+	    h2 { margin: 1em 0 0.5em; }
+	    p { font-size: 100%; line-height: 1.5; min-height: 0.75em; }
+	    .pre-block { margin: 8px 0 16px; background-color: #222; border-radius: 8px; }
+	    .pre-block pre { padding: 8px; background-color: #333; border-radius: 8px 8px 0 0; }
+	    .pre-block .meta { display: flex; gap: 8px; color: #999; }
+	    .pre-block .meta legend { padding: 8px; }
+	    .pre-block .meta button {
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            margin-left: auto;
+            padding: 8px;
+            border-radius: 0 0 8px 0;
+        }
+	    .pre-block .meta button:active {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <h1>{{ .Title }}</h1>
+        {{- range .Nodes }}
+        {{ .HTML }}
+        {{- end }}
+    </main>
+
+    <script>
+        document.querySelectorAll(".pre-block").forEach(el => {
+            if (!navigator.clipboard) return;
+            const text = el.querySelector("pre").innerText;
+            const btn = el.querySelector("button")
+            btn.onclick = e => {
+                navigator.clipboard.writeText(text);
+                console.log("Copied to clipboard");
+            };
+        })
+    </script>
+</body>
+
+</html>

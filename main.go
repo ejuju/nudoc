@@ -4,8 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/ejuju/nublog/pkg/nublog"
-	"github.com/ejuju/nublog/pkg/nudoc"
+	"github.com/ejuju/nudoc/pkg/nudoc"
 )
 
 func main() {
@@ -25,7 +24,7 @@ func main() {
 		log.Printf("%T %#v", n, n)
 	}
 
-	err = nublog.WriteHTML(os.Stdout, doc)
+	err = nudoc.WriteHTML(os.Stdout, doc)
 	if err != nil {
 		log.Fatal(err)
 	}
