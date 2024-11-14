@@ -1,0 +1,21 @@
+# Introduction to NuDoc
+
+| This document is an introduction to the NuDoc hypertext format.
+|
+| NuDoc is a line-oriented format that allows you to define rich-text documents
+| using a simple syntax ressembling Gemtext and Markdown.
+
+> How does it work?
+
+| Depending on the line's first character, the line will be rendered differently:
+| - "@" for links.
+| - "$" for setting the topic (title/heading). The first topic is usually the title of the document.
+| - "|" for normal text lines (line breaks are kept).
+| - "=" for starting or ending a preformatted block.
+|
+| Here's an example of a preformatted block:
+= A box with "Hello" written inside.
++-------+
+| Hello |
++-------+
+=
