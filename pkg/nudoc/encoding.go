@@ -13,21 +13,12 @@ import (
 
 const (
 	LinePrefixLink            byte = '@'
+	LinePrefixListItem        byte = '-'
 	LinePrefixPreformatToggle byte = '='
 	LinePrefixText            byte = '|'
 	LinePrefixTitle           byte = '#'
 	LinePrefixTopic           byte = '>'
 )
-
-var linePrefixLabels = map[byte]string{
-	LinePrefixLink:            "Link",
-	LinePrefixPreformatToggle: "Preformat",
-	LinePrefixText:            "Text",
-	LinePrefixTitle:           "Title",
-	LinePrefixTopic:           "Topic",
-}
-
-func LinePrefixLabel(prefix byte) (label string) { return linePrefixLabels[prefix] }
 
 func Parse(r io.Reader) (doc *Document, err error) {
 	br := bufio.NewReader(r)
@@ -70,6 +61,30 @@ Outer:
 				continue // Ignore invalid link.
 			}
 			doc.Nodes = append(doc.Nodes, Link{url, label})
+		case LinePrefixListItem:
+			var list List
+			for {
+				line, err := br.ReadString('\n')
+				if errors.Is(err, io.EOF) {
+					break Outer // Reached EOF (tolerated).
+				} else if err != nil {
+					return nil, fmt.Errorf("read line %d: %w", i, err)
+				}
+				line = strings.TrimRight(line, "\r\n")
+				if line == "" {
+					break // Reached end of list.
+				}
+				prefix := line[0]
+				if prefix != LinePrefixListItem {
+					log.Printf("invalid list item: %q", line)
+				}
+				body := line[1:]
+				if len(line) > 1 && line[1] == ' ' {
+					body = body[1:]
+				}
+				list = append(list, body)
+			}
+			doc.Nodes = append(doc.Nodes, list)
 		case LinePrefixPreformatToggle:
 			alt := body
 			content := ""

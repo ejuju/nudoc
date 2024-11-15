@@ -24,6 +24,32 @@ func (n Link) HTML() template.HTML {
 	return template.HTML("<a href=\"" + n.URL + "\">" + n.Label + "</a>")
 }
 
+type List []string
+
+func (n List) NuDoc() (v string) {
+	for _, item := range n {
+		v += string(LinePrefixListItem) + " " + item + "\n"
+	}
+	v += "\n"
+	return v
+}
+
+func (n List) Markdown() (v string) {
+	for _, item := range n {
+		v += "- " + item + "\n"
+	}
+	return v
+}
+
+func (n List) HTML() template.HTML {
+	v := "<ul>\n"
+	for _, item := range n {
+		v += "<li>" + item + "</li>\n"
+	}
+	v += "</ul>\n"
+	return template.HTML(v)
+}
+
 type PreformattedTextBlock struct {
 	Alt string // For a11y.
 	Pre string // Actual preformatted content.
