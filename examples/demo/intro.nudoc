@@ -21,7 +21,7 @@ Tags: nudoc, beginner, tutorial
 | A list has be followed by an empty line or EOF.
 
 | Here's an example of a preformatted block:
-= A box with "Hello" written inside.
+= The word "Hello" written inside a box.
 +-------+
 | Hello |
 +-------+
