@@ -1,6 +1,7 @@
 package nudoc
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"html/template"
@@ -75,15 +76,22 @@ func (h *Header) Text() (v string) {
 }
 
 func (h *Header) HTML() template.HTML {
-	const tmpl = `
+	tmpl := template.Must(template.New("header").Parse(`
 	<section id="top">
-            <p id="tags">%s</p>
-            <p id="date">%s</p>
-            <h1>%s</h1>
-            <p>%s</p>
+			<p id="date">Date: {{ .Date.Format "2006-01-02" }}</p>
+            <p id="tags">Tags:
+				{{ range $i, $v := .Tags }}{{ if $i }}, {{ end }}{{ $v }}{{ end }}
+			</p>
+            <h1>{{ .Name }}</h1>
+            <p>{{ .Desc }}</p>
     </section>
-	`
-	return template.HTML(fmt.Sprintf(tmpl, strings.Join(h.Tags, ", "), h.Date.Format(time.DateOnly), h.Name, h.Desc))
+	`))
+	b := &bytes.Buffer{}
+	err := tmpl.Execute(b, h)
+	if err != nil {
+		panic(err)
+	}
+	return template.HTML(b.String())
 }
 
 func ParseHeader(r *Reader) (*Header, error) {
