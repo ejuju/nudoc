@@ -22,7 +22,6 @@ type Body struct {
 const MaxBodyLines = 100_000
 
 var (
-	ErrBodyTooManyLines              = errors.New("too many body lines")
 	ErrBodyMissingTrailingLF         = errors.New("missing line break at end of file")
 	ErrBodyMissingSpaceAfterLineType = errors.New("missing whitespace after line type")
 	ErrInvalidLink                   = errors.New("invalid link")

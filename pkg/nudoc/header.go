@@ -27,7 +27,6 @@ var ReservedKeys = [...]string{
 const MaxHeaderLines = len(ReservedKeys) + 1
 
 var (
-	ErrHeaderTooManyLines      = errors.New("too many header lines")
 	ErrHeaderSeparatorNotFound = errors.New("header separator not found")
 	ErrHeaderUnknownKey        = errors.New("unknown key in header")
 	ErrHeaderInvalidDate       = errors.New("invalid date value in header")
@@ -43,21 +42,43 @@ type Header struct {
 	Tags []string
 }
 
-func (h *Header) PrettyString() (v string) {
-	v += fmt.Sprintf("%s: %q\n", KeyName, h.Name)
-	v += fmt.Sprintf("%s: %q\n", KeyDesc, h.Desc)
-	v += fmt.Sprintf("%s: %q\n", KeySlug, h.Slug)
-	v += fmt.Sprintf("%s: %q\n", KeyDate, h.Date)
-	v += fmt.Sprintf("%s: %q\n", KeyTags, h.Tags)
+func (h *Header) NuDoc() (v string) {
+	v += KeyName + ": " + h.Name + "\n"
+	v += KeyDesc + ": " + h.Desc + "\n"
+	v += KeySlug + ": " + h.Slug + "\n"
+	v += KeyDate + ": " + h.Date.Format(time.DateOnly) + "\n"
+	v += KeyTags + ": " + strings.Join(h.Tags, ", ") + "\n"
+	v += "---\n"
 	return v
+}
+
+func (h *Header) Markdown() (v string) {
+	v += "---\n"
+	v += KeyName + ": " + h.Name + "\n"
+	v += KeyDesc + ": " + h.Desc + "\n"
+	v += KeySlug + ": " + h.Slug + "\n"
+	v += KeyDate + ": " + h.Date.Format(time.DateOnly) + "\n"
+	v += KeyTags + ": " + strings.Join(h.Tags, ", ") + "\n"
+	v += "---\n"
+	return v
+}
+
+func (h *Header) HTML() (v string) {
+	return fmt.Sprintf(`
+	<section id="top">
+            <p id="tags">%s</p>
+            <p id="date">%s</p>
+            <h1>%s</h1>
+            <p>%s</p>
+    </section>
+	`,
+		strings.Join(h.Tags, ", "), h.Date.Format(time.DateOnly), h.Name, h.Desc,
+	)
 }
 
 func ParseHeader(r *Reader) (*Header, error) {
 	header := &Header{}
 	for {
-		if r.Line() > MaxHeaderLines {
-			return nil, r.WrapErr(ErrHeaderTooManyLines)
-		}
 		line, err := r.ReadLine()
 		if err != nil {
 			return nil, r.WrapErr(err)
@@ -102,7 +123,7 @@ func ParseHeaderDate(v string) (time.Time, error) {
 }
 
 func ParseHeaderTags(v string) (tags []string, err error) {
-	tags = strings.Split(v, " ")
+	tags = strings.Split(v, ", ")
 	if len(tags) == 0 {
 		return nil, fmt.Errorf("%w: no tags found", ErrHeaderInvalidTag)
 	}
@@ -117,21 +138,14 @@ func ParseHeaderTags(v string) (tags []string, err error) {
 }
 
 func ParseHeaderTag(v string) (string, error) {
-	// Ensure that tag is not empty and starts with a hashtag ("#").
 	if v == "" {
 		return "", fmt.Errorf("%w: empty", ErrHeaderInvalidTag)
-	} else if !strings.HasPrefix(v, "#") {
-		return "", fmt.Errorf("%w: missing leading hashtag", ErrHeaderInvalidTag)
 	}
-
-	// Trim leading hashtag and check characters.
-	v = v[1:]
 	for i, c := range v {
 		if !IsValidHeaderTagCharacter(c) {
 			return "", fmt.Errorf("%w: forbidden character %q at column %d", ErrHeaderInvalidTag, c, i)
 		}
 	}
-
 	return v, nil
 }
 
