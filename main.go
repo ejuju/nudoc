@@ -14,7 +14,7 @@ func main() {
 	}
 	defer f.Close()
 
-	doc, err := nudoc.Parse(f)
+	doc, err := nudoc.ParseDocument(f)
 	if err != nil {
 		log.Fatal(err)
 	}

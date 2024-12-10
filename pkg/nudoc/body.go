@@ -2,14 +2,16 @@ package nudoc
 
 import (
 	"bufio"
-	_ "embed"
 	"errors"
 	"fmt"
-	"html/template"
 	"io"
 	"log"
 	"strings"
 )
+
+type Body struct {
+	Nodes []Node
+}
 
 const (
 	LinePrefixLink            byte = '@'
@@ -20,21 +22,15 @@ const (
 	LinePrefixTopic           byte = '>'
 )
 
-func Parse(r io.Reader) (doc *Document, err error) {
-	br := bufio.NewReader(r)
-	title, err := br.ReadString('\n')
-	isEOF := errors.Is(err, io.EOF)
-	if err != nil && !isEOF {
-		return nil, fmt.Errorf("read title: %w", err)
-	} else if !isEOF {
-		title = strings.TrimRight(title, "\r\n")
-	}
-	title = strings.TrimPrefix(title, "# ")
-	doc = &Document{Title: title}
+const MaxBodyLines = 100_000
 
-Outer:
-	for i := 0; true; i++ {
-		line, err := br.ReadString('\n')
+func ParseBody(r *bufio.Reader) (*Body, error) {
+	body := &Body{}
+	for i := 0; i <= MaxBodyLines; i++ {
+		if i == MaxBodyLines {
+			return nil, fmt.Errorf("too many body lines (#%d)", i)
+		}
+		line, err := r.ReadString('\n')
 		if errors.Is(err, io.EOF) {
 			break // Reached EOF.
 		} else if err != nil {
@@ -46,27 +42,27 @@ Outer:
 		}
 
 		prefix := line[0]
-		body := line[1:]
+		value := line[1:]
 		if len(line) > 1 && line[1] == ' ' {
-			body = body[1:]
+			value = value[1:]
 		}
 
 		switch prefix {
 		default:
 			continue // Ignore unknown line type.
 		case LinePrefixLink:
-			url, label, found := strings.Cut(body, " ")
+			url, label, found := strings.Cut(value, " ")
 			if !found {
 				log.Printf("invalid link: %q", line)
 				continue // Ignore invalid link.
 			}
-			doc.Nodes = append(doc.Nodes, Link{url, label})
+			body.Nodes = append(body.Nodes, Link{url, label})
 		case LinePrefixListItem:
 			var list List
 			for {
-				line, err := br.ReadString('\n')
+				line, err := r.ReadString('\n')
 				if errors.Is(err, io.EOF) {
-					break Outer // Reached EOF (tolerated).
+					return nil, fmt.Errorf("read line %d: missing LF after list item: %w", i, err)
 				} else if err != nil {
 					return nil, fmt.Errorf("read line %d: %w", i, err)
 				}
@@ -84,14 +80,14 @@ Outer:
 				}
 				list = append(list, body)
 			}
-			doc.Nodes = append(doc.Nodes, list)
+			body.Nodes = append(body.Nodes, list)
 		case LinePrefixPreformatToggle:
-			alt := body
+			alt := value
 			content := ""
 			for {
-				line, err := br.ReadString('\n')
+				line, err := r.ReadString('\n')
 				if errors.Is(err, io.EOF) {
-					break Outer // Reached EOF (tolerated).
+					return nil, fmt.Errorf("read line %d: missing LF after preformatted block: %w", i, err)
 				} else if err != nil {
 					return nil, fmt.Errorf("read line %d: %w", i, err)
 				} else if line[0] == LinePrefixPreformatToggle {
@@ -99,24 +95,15 @@ Outer:
 				}
 				content += line
 			}
-			doc.Nodes = append(doc.Nodes, PreformattedTextBlock{alt, content})
+			body.Nodes = append(body.Nodes, PreformattedTextBlock{alt, content})
 		case LinePrefixText:
-			doc.Nodes = append(doc.Nodes, Text(body))
+			body.Nodes = append(body.Nodes, Text(value))
 		case LinePrefixTitle:
-			doc.Nodes = append(doc.Nodes, Topic(body))
+			body.Nodes = append(body.Nodes, Topic(value))
 		case LinePrefixTopic:
-			doc.Nodes = append(doc.Nodes, Topic(body))
+			body.Nodes = append(body.Nodes, Topic(value))
 		}
 	}
 
-	return doc, nil
-}
-
-//go:embed page.gohtml
-var rawTmpl string
-
-var tmpl = template.Must(template.New("").Parse(rawTmpl))
-
-func WriteHTML(w io.Writer, doc *Document) (err error) {
-	return tmpl.Execute(w, doc)
+	return body, nil
 }
