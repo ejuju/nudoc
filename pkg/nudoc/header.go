@@ -62,6 +62,10 @@ func (h *Header) Markdown() (v string) {
 	v += KeyDate + ": " + h.Date.Format(time.DateOnly) + "\n"
 	v += KeyTags + ": " + strings.Join(h.Tags, ", ") + "\n"
 	v += "---\n"
+	v += "\n"
+	v += "# " + h.Name + "\n"
+	v += "\n"
+	v += h.Desc + "\n"
 	return v
 }
 
