@@ -14,13 +14,13 @@ func main() {
 	}
 	defer f.Close()
 
-	doc, err := nudoc.ParseDocument(f)
+	doc, err := nudoc.ParseDocument(nudoc.NewReader(f))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Printf("Title: %s", doc.Title)
-	for _, n := range doc.Nodes {
+	log.Printf("Name: %s", doc.Header.Name)
+	for _, n := range doc.Body.Nodes {
 		log.Printf("%T %#v", n, n)
 	}
 

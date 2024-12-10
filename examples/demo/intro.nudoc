@@ -1,11 +1,9 @@
 Name: Introduction to NuDoc
-Desc: Learn the basics of the NuDoc markup format.
+Description: Learn the basics of the NuDoc markup format.
 Slug: intro-to-nudoc
 Date: 2024-12-10
 Tags: #nudoc #beginner #tutorial
 ---
-
-# Introduction to NuDoc
 
 | This document is an introduction to the NuDoc hypertext format.
 |
@@ -19,6 +17,8 @@ Tags: #nudoc #beginner #tutorial
 - "$" for setting the topic (title/heading). The first topic is usually the title of the document.
 - "|" for normal text lines (line breaks are kept).
 - "=" for starting or ending a preformatted block.
+
+| A list has be followed by an empty line or EOF.
 
 | Here's an example of a preformatted block:
 = A box with "Hello" written inside.

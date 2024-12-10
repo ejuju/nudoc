@@ -1,7 +1,6 @@
 package nudoc
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"strings"
@@ -10,13 +9,13 @@ import (
 
 const (
 	KeyName = "Name"
-	KeyDesc = "Desc"
+	KeyDesc = "Description"
 	KeySlug = "Slug"
 	KeyDate = "Date"
 	KeyTags = "Tags"
 )
 
-var Keys = [...]string{
+var ReservedKeys = [...]string{
 	KeyName,
 	KeyDesc,
 	KeySlug,
@@ -24,11 +23,16 @@ var Keys = [...]string{
 	KeyTags,
 }
 
-const MaxHeaderLines = len(Keys) + 1 // All keys + end of header line ("---").
+// One line for each key, plus the end-of-header line ("---").
+const MaxHeaderLines = len(ReservedKeys) + 1
 
 var (
-	ErrInvalidDate = errors.New("invalid date")
-	ErrInvalidTag  = errors.New("invalid tag")
+	ErrHeaderTooManyLines      = errors.New("too many header lines")
+	ErrHeaderSeparatorNotFound = errors.New("header separator not found")
+	ErrHeaderUnknownKey        = errors.New("unknown key in header")
+	ErrHeaderInvalidDate       = errors.New("invalid date value in header")
+	ErrHeaderInvalidTags       = errors.New("invalid tags value in header")
+	ErrHeaderInvalidTag        = errors.New("invalid tag in header")
 )
 
 type Header struct {
@@ -39,27 +43,34 @@ type Header struct {
 	Tags []string
 }
 
-func ParseHeader(r *bufio.Reader) (*Header, error) {
+func (h *Header) PrettyString() (v string) {
+	v += fmt.Sprintf("%s: %q\n", KeyName, h.Name)
+	v += fmt.Sprintf("%s: %q\n", KeyDesc, h.Desc)
+	v += fmt.Sprintf("%s: %q\n", KeySlug, h.Slug)
+	v += fmt.Sprintf("%s: %q\n", KeyDate, h.Date)
+	v += fmt.Sprintf("%s: %q\n", KeyTags, h.Tags)
+	return v
+}
+
+func ParseHeader(r *Reader) (*Header, error) {
 	header := &Header{}
-	for i := 0; i <= MaxHeaderLines; i++ {
-		if i == MaxHeaderLines {
-			return nil, fmt.Errorf("too many header lines (#%d)", i)
+	for {
+		if r.Line() > MaxHeaderLines {
+			return nil, r.WrapErr(ErrHeaderTooManyLines)
 		}
-		line, err := r.ReadString('\n')
+		line, err := r.ReadLine()
 		if err != nil {
-			return nil, fmt.Errorf("read header line (#%d): %w", i, err)
-		}
-		line = strings.TrimSpace(line)
-		if line == "---" {
+			return nil, r.WrapErr(err)
+		} else if line == "---" {
 			break
 		}
 		key, value, ok := strings.Cut(line, ": ")
 		if !ok {
-			return nil, fmt.Errorf("invalid header line (#%d): separator-space not found", i)
+			return nil, r.WrapErr(ErrHeaderSeparatorNotFound)
 		}
 		switch key {
 		default:
-			return nil, fmt.Errorf("invalid header line (#%d): no separator found", i)
+			return nil, r.WrapErr(fmt.Errorf("%w: %q", ErrHeaderUnknownKey, key))
 		case KeyName:
 			header.Name = value
 		case KeyDesc:
@@ -67,14 +78,14 @@ func ParseHeader(r *bufio.Reader) (*Header, error) {
 		case KeySlug:
 			header.Slug = value
 		case KeyDate:
-			header.Date, err = ParseDate(value)
+			header.Date, err = ParseHeaderDate(value)
 			if err != nil {
-				return nil, fmt.Errorf("invalid header date at line index (#%d): %w", i, err)
+				return nil, r.WrapErr(err)
 			}
 		case KeyTags:
-			header.Tags, err = ParseTags(value)
+			header.Tags, err = ParseHeaderTags(value)
 			if err != nil {
-				return nil, fmt.Errorf("invalid header tags at line index (#%d): %w", i, err)
+				return nil, r.WrapErr(err)
 			}
 		}
 	}
@@ -82,21 +93,21 @@ func ParseHeader(r *bufio.Reader) (*Header, error) {
 	return header, nil
 }
 
-func ParseDate(v string) (time.Time, error) {
+func ParseHeaderDate(v string) (time.Time, error) {
 	t, err := time.Parse(time.DateOnly, v)
 	if err != nil {
-		return t, fmt.Errorf("%w: %w", ErrInvalidDate, err)
+		return t, fmt.Errorf("%w: %w", ErrHeaderInvalidDate, err)
 	}
 	return t, nil
 }
 
-func ParseTags(v string) (tags []string, err error) {
+func ParseHeaderTags(v string) (tags []string, err error) {
 	tags = strings.Split(v, " ")
 	if len(tags) == 0 {
-		return nil, fmt.Errorf("%w: no tags found", ErrInvalidTag)
+		return nil, fmt.Errorf("%w: no tags found", ErrHeaderInvalidTag)
 	}
 	for i, tag := range tags {
-		tag, err = ParseTag(tag)
+		tag, err = ParseHeaderTag(tag)
 		if err != nil {
 			return nil, err
 		}
@@ -105,21 +116,25 @@ func ParseTags(v string) (tags []string, err error) {
 	return tags, nil
 }
 
-func ParseTag(v string) (string, error) {
+func ParseHeaderTag(v string) (string, error) {
+	// Ensure that tag is not empty and starts with a hashtag ("#").
 	if v == "" {
-		return "", fmt.Errorf("%w: empty", ErrInvalidTag)
+		return "", fmt.Errorf("%w: empty", ErrHeaderInvalidTag)
 	} else if !strings.HasPrefix(v, "#") {
-		return "", fmt.Errorf("%w: missing leading hashtag", ErrInvalidTag)
+		return "", fmt.Errorf("%w: missing leading hashtag", ErrHeaderInvalidTag)
 	}
+
+	// Trim leading hashtag and check characters.
 	v = v[1:]
 	for i, c := range v {
-		if !IsValidTagCharacter(c) {
-			return "", fmt.Errorf("%w: forbidden character %q at index %d", ErrInvalidTag, c, i)
+		if !IsValidHeaderTagCharacter(c) {
+			return "", fmt.Errorf("%w: forbidden character %q at column %d", ErrHeaderInvalidTag, c, i)
 		}
 	}
+
 	return v, nil
 }
 
-func IsValidTagCharacter(c rune) bool {
+func IsValidHeaderTagCharacter(c rune) bool {
 	return (c >= 'a' && c <= 'z') || c == '-'
 }

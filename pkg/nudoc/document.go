@@ -1,13 +1,26 @@
 package nudoc
 
 import (
+	"fmt"
 	"html"
 	"html/template"
 )
 
 type Document struct {
-	Title string
-	Nodes []Node
+	Header *Header
+	Body   *Body
+}
+
+func ParseDocument(r *Reader) (*Document, error) {
+	header, err := ParseHeader(r)
+	if err != nil {
+		return nil, fmt.Errorf("parse header: %w", err)
+	}
+	body, err := ParseBody(r)
+	if err != nil {
+		return nil, fmt.Errorf("parse body: %w", err)
+	}
+	return &Document{header, body}, nil
 }
 
 type Node interface {
@@ -78,12 +91,6 @@ type Text string
 func (n Text) NuDoc() string       { return string(LinePrefixText) + " " + string(n) + "\n" }
 func (n Text) Markdown() string    { return string(n) + "\n" }
 func (n Text) HTML() template.HTML { return template.HTML("<p>" + string(n) + "</p>") }
-
-type Title string
-
-func (n Title) NuDoc() string       { return string(LinePrefixTitle) + " " + string(n) + "\n" }
-func (n Title) Markdown() string    { return "# " + string(n) + "\n" }
-func (n Title) HTML() template.HTML { return template.HTML("<h1>" + string(n) + "</h1>") }
 
 type Topic string
 

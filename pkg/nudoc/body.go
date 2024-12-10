@@ -1,105 +1,104 @@
 package nudoc
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"strings"
 )
-
-type Body struct {
-	Nodes []Node
-}
 
 const (
 	LinePrefixLink            byte = '@'
 	LinePrefixListItem        byte = '-'
 	LinePrefixPreformatToggle byte = '='
 	LinePrefixText            byte = '|'
-	LinePrefixTitle           byte = '#'
 	LinePrefixTopic           byte = '>'
 )
 
+type Body struct {
+	Nodes []Node
+}
+
 const MaxBodyLines = 100_000
 
-func ParseBody(r *bufio.Reader) (*Body, error) {
+var (
+	ErrBodyTooManyLines              = errors.New("too many body lines")
+	ErrBodyMissingTrailingLF         = errors.New("missing line break at end of file")
+	ErrBodyMissingSpaceAfterLineType = errors.New("missing whitespace after line type")
+	ErrInvalidLink                   = errors.New("invalid link")
+)
+
+func ParseBody(r *Reader) (*Body, error) {
 	body := &Body{}
-	for i := 0; i <= MaxBodyLines; i++ {
-		if i == MaxBodyLines {
-			return nil, fmt.Errorf("too many body lines (#%d)", i)
-		}
-		line, err := r.ReadString('\n')
+	for {
+		line, typ, value, err := r.ReadBodyLine()
+		// TODO: Check that EOF was not reached with an empty line,
+		// otherwise line is silently ignored.
 		if errors.Is(err, io.EOF) {
 			break // Reached EOF.
 		} else if err != nil {
-			return nil, fmt.Errorf("read line %d: %w", i, err)
-		}
-		line = strings.TrimRight(line, "\r\n")
-		if line == "" {
+			return nil, r.WrapErr(err)
+		} else if line == "" {
 			continue // Ignore empty line.
-		}
-
-		prefix := line[0]
-		value := line[1:]
-		if len(line) > 1 && line[1] == ' ' {
+		} else if len(line) >= 2 && line[1] != ' ' && typ != LinePrefixPreformatToggle {
+			return nil, r.WrapErr(ErrBodyMissingSpaceAfterLineType)
+		} else if len(line) >= 2 && line[1] == ' ' && typ != LinePrefixPreformatToggle {
 			value = value[1:]
 		}
 
-		switch prefix {
+		switch typ {
 		default:
 			continue // Ignore unknown line type.
 		case LinePrefixLink:
+			// TODO: Extract to ParseLink function and check charset, etc.
 			url, label, found := strings.Cut(value, " ")
 			if !found {
-				log.Printf("invalid link: %q", line)
-				continue // Ignore invalid link.
+				return nil, r.WrapErr(ErrInvalidLink)
 			}
 			body.Nodes = append(body.Nodes, Link{url, label})
 		case LinePrefixListItem:
 			var list List
+			list = append(list, value)
 			for {
-				line, err := r.ReadString('\n')
-				if errors.Is(err, io.EOF) {
-					return nil, fmt.Errorf("read line %d: missing LF after list item: %w", i, err)
+				line, typ, value, err = r.ReadBodyLine()
+				reachedEOF := errors.Is(err, io.EOF)
+				if reachedEOF && line == "" {
+					break // Reached EOF with empty line.
+				} else if reachedEOF && line != "" {
+					return nil, r.WrapErr(ErrBodyMissingTrailingLF) // Reached EOF with non-empty line.
 				} else if err != nil {
-					return nil, fmt.Errorf("read line %d: %w", i, err)
-				}
-				line = strings.TrimRight(line, "\r\n")
-				if line == "" {
+					return nil, r.WrapErr(err)
+				} else if line == "" && !reachedEOF {
 					break // Reached end of list.
+				} else if typ != LinePrefixListItem {
+					return nil, r.WrapErr(fmt.Errorf("unexpected list item type %q", typ))
+				} else if len(line) >= 2 && line[1] != ' ' {
+					return nil, r.WrapErr(ErrBodyMissingSpaceAfterLineType)
 				}
-				prefix := line[0]
-				if prefix != LinePrefixListItem {
-					log.Printf("invalid list item: %q", line)
-				}
-				body := line[1:]
-				if len(line) > 1 && line[1] == ' ' {
-					body = body[1:]
-				}
-				list = append(list, body)
+				value = value[1:]
+				list = append(list, value)
 			}
 			body.Nodes = append(body.Nodes, list)
 		case LinePrefixPreformatToggle:
 			alt := value
 			content := ""
 			for {
-				line, err := r.ReadString('\n')
-				if errors.Is(err, io.EOF) {
-					return nil, fmt.Errorf("read line %d: missing LF after preformatted block: %w", i, err)
-				} else if err != nil {
-					return nil, fmt.Errorf("read line %d: %w", i, err)
-				} else if line[0] == LinePrefixPreformatToggle {
+				line, typ, _, err = r.ReadBodyLine()
+				reachedEOF := errors.Is(err, io.EOF)
+				if typ == LinePrefixPreformatToggle {
 					break // Reached end of preformatted block.
+				} else if reachedEOF && line == "" {
+					break // Reached EOF with empty line.
+				} else if reachedEOF && line != "" {
+					return nil, r.WrapErr(ErrBodyMissingTrailingLF) // Reached EOF with non-empty line.
+				} else if err != nil {
+					return nil, r.WrapErr(err)
 				}
-				content += line
+				content += line + "\n"
 			}
 			body.Nodes = append(body.Nodes, PreformattedTextBlock{alt, content})
 		case LinePrefixText:
 			body.Nodes = append(body.Nodes, Text(value))
-		case LinePrefixTitle:
-			body.Nodes = append(body.Nodes, Topic(value))
 		case LinePrefixTopic:
 			body.Nodes = append(body.Nodes, Topic(value))
 		}
