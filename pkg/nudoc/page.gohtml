@@ -30,12 +30,27 @@
 	    main .pre-block .meta button:active {
             text-decoration: underline;
         }
+        main #top { 
+            padding-bottom: 24px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #ccc;
+        }
+        main #date,
+        main #tags {
+            color: #aaa;
+        }
     </style>
 </head>
 
 <body>
     <main>
-        <h1>{{ .Header.Name }}</h1>
+        <section id="top">
+            <p id="tags">{{ .Header.Tags }}</p>
+            <p id="date">{{ .Header.Date.Format "2006-01-02" }}</p>
+            <h1>{{ .Header.Name }}</h1>
+            <p>{{ .Header.Desc }}</p>
+        </section>
+
         {{- range .Body.Nodes }}
         {{ .HTML }}
         {{- end }}

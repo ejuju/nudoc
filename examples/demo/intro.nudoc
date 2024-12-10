@@ -28,6 +28,6 @@ Tags: #nudoc #beginner #tutorial
 =
 
 | Here's an example of links:
-@ /about Go to some other page in the same origin.
-@ nudoc://nudoc.example/some-page Go to some other page on a different origin.
-@ https://example.org Go to some HTTP page.
+@ /about Go to some other page in the same origin
+@ nudoc://nudoc.example/some-page Go to some other page on a different origin
+@ https://example.org Go to some HTTP page
