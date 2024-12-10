@@ -3,6 +3,7 @@ package nudoc
 import (
 	"errors"
 	"fmt"
+	"html/template"
 	"strings"
 	"time"
 )
@@ -63,17 +64,26 @@ func (h *Header) Markdown() (v string) {
 	return v
 }
 
-func (h *Header) HTML() (v string) {
-	return fmt.Sprintf(`
+func (h *Header) Text() (v string) {
+	v += KeyName + ": " + h.Name + "\n"
+	v += KeyDesc + ": " + h.Desc + "\n"
+	v += KeySlug + ": " + h.Slug + "\n"
+	v += KeyDate + ": " + h.Date.Format(time.DateOnly) + "\n"
+	v += KeyTags + ": " + strings.Join(h.Tags, ", ") + "\n"
+	v += "---\n"
+	return v
+}
+
+func (h *Header) HTML() template.HTML {
+	const tmpl = `
 	<section id="top">
             <p id="tags">%s</p>
             <p id="date">%s</p>
             <h1>%s</h1>
             <p>%s</p>
     </section>
-	`,
-		strings.Join(h.Tags, ", "), h.Date.Format(time.DateOnly), h.Name, h.Desc,
-	)
+	`
+	return template.HTML(fmt.Sprintf(tmpl, strings.Join(h.Tags, ", "), h.Date.Format(time.DateOnly), h.Name, h.Desc))
 }
 
 func ParseHeader(r *Reader) (*Header, error) {
