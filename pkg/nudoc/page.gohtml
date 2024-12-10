@@ -7,16 +7,25 @@
     <title>{{ .Header.Name }}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; color: inherit; }
-        body { background-color: #111; color: #eee; } 
-        main { padding: 16px; max-width: 500px; margin: 0 auto; }
+        body { background-color: #111; color: #eee; font-family: monospace; } 
+        main { padding: 16px; max-width: 110ch; margin: 0 auto; }
         main a { margin-top: 0.5em; display: block; }
         main ul { margin: 0.5em 0 1em; list-style-position: inside; }
         main ul li { margin: 0.25em 0; }
 	    main h1 { margin: 1.5em 0 1em; color: #fff; }
 	    main h2 { margin: 1em 0 0.5em; }
 	    main p { font-size: 100%; line-height: 1.5; min-height: 0.75em; }
-	    main .pre-block { margin: 8px 0 16px; background-color: #222; border-radius: 8px; }
-	    main .pre-block pre { padding: 8px; background-color: #333; border-radius: 8px 8px 0 0; }
+	    main .pre-block { 
+            margin: 8px 0 16px;
+            background-color: #222;
+            border-radius: 8px;
+            max-width: max-content;
+        }
+	    main .pre-block pre {
+            padding: 8px;
+            background-color: #333;
+            border-radius: 8px 8px 0 0;
+        }
 	    main .pre-block .meta { display: flex; gap: 8px; color: #999; }
 	    main .pre-block .meta legend { padding: 8px; }
 	    main .pre-block .meta button {
