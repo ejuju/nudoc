@@ -10,7 +10,17 @@ This document is an introduction to the NuDoc hypertext format.
 NuDoc is a line-oriented format that allows you to define
 rich-text documents using a simple syntax ressembling Gemtext and Markdown.
 
-> How does it work?
+> Defining metadata
+
+Documents must start with a header containing key-value pairs that define metadata such as:
+
+- Name
+- Description
+- Slug
+- Date
+- Tags
+
+> Defining content
 
 Depending on the line's first character, the line will be rendered differently:
 
