@@ -1,0 +1,135 @@
+Name: Designing NuDoc
+---
+
+Main inspirations: Markdown, HTML, Gemtext.
+
+# Defining content
+
+Line prefixes are used to define rich-content.
+Lines that don't start with any of the reserved prefixes are simply parsed
+as regular text.
+
+| Reserved line are:
+- "# ": Topic line
+- "> ": Link line
+- "| ": List title line
+- "- ": List item line
+- "' ": Preformatted line
+- "* ": Line comment line
+- "```": Preformatted block toggle
+- "***": Multiline comment toggle (or footnote comment start marker)
+
+# Topics
+
+Topics are used to title a section of content.
+A topic is the second highest level of heading (like a HTML `<h2>`).
+
+Note that the document's name is used like a HTML `<h1>` and meta `<title>`.
+
+## Links
+
+Links are defined as follows:
+```
+> /fruits/banana Learn more about bananas!
+```
+
+# Comments
+
+If a line starts with "* ", consider the line to be a comment (until LF).
+
+Multiline comments and footnotes:
+if a line starts with "***", consider all next lines to be comments until "***" (or EOF)
+is encountered.
+
+Note that inline comments are deliberately not supported.
+
+# Preformatted blocks
+
+A preformatted text block is simply text that is rendered "as is" in a monospace font.
+They are similar to HTML peformatted tags (`<pre>`) tag and Markdown triple backticks ` ``` `.
+There are useful for sharing code, ASCII art and much more.
+
+Preformatted blocks are essential for software documentation because they mimic
+how text would be rendered in a code editor or CLI environment.
+Clients are also encouraged to make it easier for users to copy the preformatted content
+by for instance, providing a "copy to clipboard" button or prompt.
+
+The syntax is the following:
+```
+"""
+echo "Hello world!"
+echo "Bonjour monde!"
+"""
+```
+
+Apart from the actual content some "metadata" may be useful for this block type:
+- Legend: short title to describe the preformatted block.
+- Alternative: alternative content for non-graphic rendering (required for a11y).
+- Content type: `html` or `json` for example for syntax hilighting.
+
+The content type can be included on the opening line:
+```
+""" bash
+echo "Hello world!"
+echo "Bonjour monde!"
+"""
+```
+
+The legend can be included on the closing line:
+```
+""" bash
+echo "Hello world!"
+echo "Bonjour monde!"
+""" Just some example commands.
+```
+
+Alternative content are be defined in a separate block.
+- [#]()
+The client should provide to easily skip the preformatted block if it doesn't make sense
+to the 
+
+## Preformatted line
+
+A preformatted line is like a preformatted block but only requires a single line
+to be defined.
+
+They are useful when the preformatted content is a just a single-line-tall.
+
+The syntax is the following:
+```
+''' echo "Hello world!"
+```
+
+***
+
+We can reserve a line prefix to put the parser into "preformatted block" mode.
+Then, we can also use a line prefix to known when the content ends.
+We also need to be able to accept additional data such as the alternative text, a content type
+and title.
+
+Content types and title can be placed on one same line since they are expected to be short.
+Since the content type has a standard MIME type format no space is expected, so let's put it first.
+and then the title ends when we reach the end of the line.
+
+However since the alternative content may be long (if the content also is),
+the syntax should accomodate for several lines of input but should also
+accept content on line that ends the block's body section.
+
+For single line alternative content, we can place the text on line that ends the body.
+So that there's no "overhead" in terms of number of lines of code.
+
+We can use a different line prefix to indicate that the body section ended but that
+we must parse the alternative content.
+
+```
+''' json
+{"fruit": "banana"}
+=~= A JSON object with the a single field called "fruit" with a value of "banana".
+''' A dummy JSON example to demonstrate a preformatted block.
+```
+
+```
+''' json
+{"fruit": "banana"}
+''' A dummy JSON example to demonstrate a preformatted block.
+```

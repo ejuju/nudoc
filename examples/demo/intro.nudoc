@@ -12,45 +12,58 @@ rich-text documents using a simple syntax ressembling Gemtext and Markdown.
 
 > Defining metadata
 
-Documents must start with a header containing key-value pairs that define metadata such as:
-
+| Documents must start with a header containing key-value pairs that define metadata such as:
 - Name
 - Description
 - Slug
 - Date
 - Tags
 
-= Example of a header.
+Here's an example of a header:
+
+= nudoc
 Name: Introduction to NuDoc
 Description: Learn the basics of the NuDoc markup format.
 Slug: intro-to-nudoc
 Date: 2024-12-10
 Tags: nudoc, beginner, tutorial
 ---
-=
+= Example of a header.
 
 > Defining content
 
-Depending on the line's first character, the line will be rendered differently:
-
+| Depending on the line's first character, the line will be rendered differently:
 - "@" for links.
 - ">" for setting the topic (heading).
-- "-" for list items.
+- "-" for list items (and "|" for the list's title).
 - "=" for starting or ending a preformatted block.
 - Other lines are interpreted as "normal" text.
 
 A list has be followed by an empty line or EOF.
 
-Here's an example of a preformatted block:
+> Links
 
-= The word "Hello" written inside a box.
-+-------+
-| Hello |
-+-------+
-=
-
-Here's an example of links:
-
+Here's are some links:
 @ /about Go to some other page in the same origin
 @ nudoc://nudoc.example/some-page Go to some other page on a different origin
 @ https://example.org Go to some HTTP page
+
+= Nudoc code
+@ /about Go to some other page in the same origin
+@ nudoc://nudoc.example/some-page Go to some other page on a different origin
+@ https://example.org Go to some HTTP page
+= nudoc
+
+> Topics
+
+> Lists
+
+> Preformatted blocks
+
+Here's an example of a preformatted block:
+
+= nudoc
++-------+
+| Hello |
++-------+
+= The word "Hello" written inside a box.

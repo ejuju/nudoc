@@ -40,10 +40,14 @@ func (n Link) HTML() template.HTML {
 	return template.HTML("<a href=\"" + n.URL + "\">" + n.Label + "</a>")
 }
 
-type List []string
+type List struct {
+	Title string
+	Items []string
+}
 
 func (n List) NuDoc() (v string) {
-	for _, item := range n {
+	v += string(LinePrefixListTitle) + " " + n.Title + "\n"
+	for _, item := range n.Items {
 		v += string(LinePrefixListItem) + " " + item + "\n"
 	}
 	v += "\n"
@@ -51,38 +55,44 @@ func (n List) NuDoc() (v string) {
 }
 
 func (n List) Markdown() (v string) {
-	for _, item := range n {
+	v += n.Title + "\n"
+	for _, item := range n.Items {
 		v += "- " + item + "\n"
 	}
+	v += "\n"
 	return v
 }
 
 func (n List) HTML() template.HTML {
-	v := "<ul>\n"
-	for _, item := range n {
+	v := "<div>"
+	v += "<p>" + n.Title + "</p>\n"
+	v += "<ul>\n"
+	for _, item := range n.Items {
 		v += "<li>" + item + "</li>\n"
 	}
 	v += "</ul>\n"
+	v += "</div>\n"
 	return template.HTML(v)
 }
 
 type PreformattedTextBlock struct {
-	Alt string // For a11y.
-	Pre string // Actual preformatted content.
+	ContentType     string // Content type for client-side content hilighting (and a11y).
+	Content         string // Actual preformatted content.
+	AlternativeText string // For screen-readers.
 }
 
 func (n PreformattedTextBlock) NuDoc() string {
-	return string(LinePrefixPreformatToggle) + " " + n.Alt + "\n" +
-		n.Pre + "\n" +
+	return string(LinePrefixPreformatToggle) + " " + n.AlternativeText + "\n" +
+		n.Content + "\n" +
 		string(LinePrefixPreformatToggle) + "\n"
 }
 
-func (n PreformattedTextBlock) Markdown() string { return "```\n" + n.Pre + "\n```\n" }
+func (n PreformattedTextBlock) Markdown() string { return "```\n" + n.Content + "\n```\n" }
 
 func (n PreformattedTextBlock) HTML() template.HTML {
 	return template.HTML("<div class=\"pre-block\">\n" +
-		"<pre aria-label=\"" + html.EscapeString(n.Alt) + "\">\n" + n.Pre + "</pre>\n" +
-		"<div class=\"meta\"><legend>" + n.Alt + "</legend><button>Copy</button></div>\n" +
+		"<pre aria-label=\"" + html.EscapeString(n.AlternativeText) + "\">\n" + n.Content + "</pre>\n" +
+		"<div class=\"meta\"><legend>" + n.AlternativeText + "</legend><button>Copy</button></div>\n" +
 		"</div>")
 }
 

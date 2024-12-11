@@ -9,6 +9,7 @@ import (
 
 const (
 	LinePrefixLink            byte = '@'
+	LinePrefixListTitle       byte = '|'
 	LinePrefixListItem        byte = '-'
 	LinePrefixPreformatToggle byte = '='
 	LinePrefixTopic           byte = '>'
@@ -63,8 +64,8 @@ func ParseBody(r *Reader) (*Body, error) {
 				return nil, r.WrapErr(ErrInvalidLink)
 			}
 			body.Nodes = append(body.Nodes, Link{url, label})
-		case LinePrefixListItem:
-			list := List{value[1:]}
+		case LinePrefixListTitle:
+			list := List{Title: value[1:]}
 			for {
 				line, typ, value, err = r.ReadBodyLine()
 				reachedEOF := errors.Is(err, io.EOF)
@@ -81,19 +82,23 @@ func ParseBody(r *Reader) (*Body, error) {
 				} else if len(line) >= 2 && line[1] != ' ' {
 					return nil, r.WrapErr(ErrBodyMissingSpaceAfterLineType)
 				}
-				list = append(list, value[1:])
+				list.Items = append(list.Items, value[1:])
 			}
 			body.Nodes = append(body.Nodes, list)
 		case LinePrefixPreformatToggle:
-			alt := value[1:]
+			contentType := value[1:]
 			content := ""
+			alt := ""
 			for {
 				line, typ, _, err = r.ReadBodyLine()
 				reachedEOF := errors.Is(err, io.EOF)
 				if typ == LinePrefixPreformatToggle {
+					if len(line) > 2 {
+						alt = line[2:]
+					}
 					break // Reached end of preformatted block.
 				} else if reachedEOF && line == "" {
-					break // Reached EOF with empty line.
+					break // Reached EOF (with empty line).
 				} else if reachedEOF && line != "" {
 					return nil, r.WrapErr(ErrBodyMissingTrailingLF) // Reached EOF with non-empty line.
 				} else if err != nil {
@@ -101,7 +106,7 @@ func ParseBody(r *Reader) (*Body, error) {
 				}
 				content += line + "\n"
 			}
-			body.Nodes = append(body.Nodes, PreformattedTextBlock{alt, content})
+			body.Nodes = append(body.Nodes, &PreformattedTextBlock{contentType, content, alt})
 		case LinePrefixTopic:
 			body.Nodes = append(body.Nodes, Topic(value[1:]))
 		}
