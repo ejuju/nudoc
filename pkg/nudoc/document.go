@@ -76,13 +76,13 @@ func (n List) HTML() template.HTML {
 }
 
 type PreformattedTextBlock struct {
-	ContentType     string // Content type for client-side content hilighting (and a11y).
-	Content         string // Actual preformatted content.
-	AlternativeText string // For screen-readers.
+	Type    string // Content type for client-side content hilighting (and a11y).
+	Content string // Actual preformatted content.
+	Legend  string // For screen-readers.
 }
 
 func (n PreformattedTextBlock) NuDoc() string {
-	return string(SequencePreformatToggle) + " " + n.AlternativeText + "\n" +
+	return string(SequencePreformatToggle) + " " + n.Legend + "\n" +
 		n.Content + "\n" +
 		string(SequencePreformatToggle) + "\n"
 }
@@ -91,8 +91,8 @@ func (n PreformattedTextBlock) Markdown() string { return "```\n" + n.Content + 
 
 func (n PreformattedTextBlock) HTML() template.HTML {
 	return template.HTML("<div class=\"pre-block\">\n" +
-		"<pre aria-label=\"" + html.EscapeString(n.AlternativeText) + "\">\n" + n.Content + "</pre>\n" +
-		"<div class=\"meta\"><legend>" + n.AlternativeText + "</legend><button>Copy</button></div>\n" +
+		"<pre aria-label=\"" + html.EscapeString(n.Legend) + "\">\n" + n.Content + "</pre>\n" +
+		"<div class=\"meta\"><legend>" + n.Legend + "</legend><button>Copy</button></div>\n" +
 		"</div>")
 }
 

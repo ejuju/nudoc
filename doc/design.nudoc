@@ -1,7 +1,35 @@
-Name: Designing NuDoc
+Name: Introduction to NuDoc
+Description: Learn the basics of the NuDoc markup format.
+Slug: intro-to-nudoc
+Date: 2024-12-10
+Tags: nudoc, beginner, tutorial
 ---
 
-Main inspirations: Markdown, HTML, Gemtext.
+This document is an introduction to the NuDoc hypertext format.
+
+NuDoc is a line-oriented format that allows you to define
+rich-text documents using a simple syntax.
+NuDoc is mainly inspired from Markdown, Gemtext and HTML.
+
+# Document header
+
+| Documents must start with a header containing key-value pairs that define metadata such as:
+- Name
+- Description
+- Slug
+- Date
+- Tags
+
+Here's an example of a header:
+
+``` nudoc
+Name: Introduction to NuDoc
+Description: Learn the basics of the NuDoc markup format.
+Slug: intro-to-nudoc
+Date: 2024-12-10
+Tags: nudoc, beginner, tutorial
+---
+``` Example of a header.
 
 # Defining content
 
@@ -30,9 +58,7 @@ Note that the document's name is used like a HTML `<h1>` and meta `<title>`.
 
 Links are defined as follows:
 
-```
-> /fruits/banana Learn more about bananas!
-```
+' > /fruits/banana Learn more about bananas!
 
 # Comments
 
@@ -58,11 +84,11 @@ by for instance, providing a "copy to clipboard" button or prompt.
 The syntax is the following:
 
 ```
-"""
+""" bash
 echo "Hello world!"
 echo "Bonjour monde!"
 """
-```
+``` Just some example commands.
 
 Apart from the actual content some "metadata" may be useful for this block type:
 - Legend: short title to describe the preformatted block.
@@ -101,9 +127,9 @@ They are useful when the preformatted content is a just a single-line-tall.
 
 The syntax is the following:
 
-```
+""" nudoc
 ''' echo "Hello world!"
-```
+""" Example of a preformatted line.
 
 ***
 

@@ -18,7 +18,7 @@ const (
 	SequenceLink                   = "> "
 	SequenceListTitle              = "| "
 	SequenceListItem               = "- "
-	SequencePreformattedLine       = "' "
+	SequencePreformatLine          = "' "
 	SequenceLineComment            = "* "
 	SequencePreformatToggle        = "```"
 	SequenceMultilineCommentToggle = "***"
@@ -104,20 +104,18 @@ func ParseBody(r *Reader) (*Body, error) {
 				list.Items = append(list.Items, line[2:])
 			}
 			body.Nodes = append(body.Nodes, list)
+		case strings.HasPrefix(line, SequencePreformatLine):
+			body.Nodes = append(body.Nodes, &PreformattedTextBlock{Content: line[2:]})
 		case strings.HasPrefix(line, SequencePreformatToggle):
-			contentType := ""
-			if len(line) > len(SequencePreformatToggle) {
-				contentType = strings.TrimSpace(line[3:])
-			}
+			typ := ""
+			typ = strings.TrimSpace(line[3:])
 			content := ""
 			legend := ""
 			for {
 				line, err = r.ReadLine()
 				reachedEOF := errors.Is(err, io.EOF)
 				if strings.HasPrefix(line, SequencePreformatToggle) {
-					if len(line) > len(SequencePreformatToggle) {
-						legend = strings.TrimSpace(line[3:])
-					}
+					legend = strings.TrimSpace(line[3:])
 					break // Reached end of preformatted block.
 				} else if reachedEOF && line == "" {
 					break // Reached EOF (with empty line).
@@ -128,7 +126,7 @@ func ParseBody(r *Reader) (*Body, error) {
 				}
 				content += line + "\n"
 			}
-			body.Nodes = append(body.Nodes, &PreformattedTextBlock{contentType, content, legend})
+			body.Nodes = append(body.Nodes, &PreformattedTextBlock{typ, content, legend})
 		case strings.HasPrefix(line, SequenceTopic):
 			body.Nodes = append(body.Nodes, Topic(line[2:]))
 		case strings.HasPrefix(line, SequenceLineComment):
