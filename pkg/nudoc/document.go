@@ -86,11 +86,13 @@ func (n PreformattedTextBlock) HTML() template.HTML {
 		"</div>")
 }
 
-type Text string
+type Paragraph string
 
-func (n Text) NuDoc() string       { return string(LinePrefixText) + " " + string(n) + "\n" }
-func (n Text) Markdown() string    { return string(n) + "\n" }
-func (n Text) HTML() template.HTML { return template.HTML("<p>" + string(n) + "</p>") }
+func (n Paragraph) NuDoc() string    { return string(n) + "\n" }
+func (n Paragraph) Markdown() string { return string(n) + "\n" }
+func (n Paragraph) HTML() template.HTML {
+	return template.HTML("<p>" + string(n) + "</p>")
+}
 
 type Topic string
 

@@ -11,7 +11,6 @@ const (
 	LinePrefixLink            byte = '@'
 	LinePrefixListItem        byte = '-'
 	LinePrefixPreformatToggle byte = '='
-	LinePrefixText            byte = '|'
 	LinePrefixTopic           byte = '>'
 )
 
@@ -39,25 +38,33 @@ func ParseBody(r *Reader) (*Body, error) {
 			return nil, r.WrapErr(err)
 		} else if line == "" {
 			continue // Ignore empty line.
-		} else if len(line) >= 2 && line[1] != ' ' && typ != LinePrefixPreformatToggle {
-			return nil, r.WrapErr(ErrBodyMissingSpaceAfterLineType)
-		} else if len(line) >= 2 && line[1] == ' ' && typ != LinePrefixPreformatToggle {
-			value = value[1:]
 		}
 
 		switch typ {
 		default:
-			continue // Ignore unknown line type.
+			content := line + "\n"
+			for {
+				line, err = r.ReadLine()
+				if errors.Is(err, io.EOF) && line != "" {
+					content += line + "\n"
+					break // Reached tolerated EOF with non-empty line.
+				} else if err != nil {
+					return nil, r.WrapErr(err)
+				} else if line == "" {
+					break // Reached empty line.
+				}
+				content += line + "\n"
+			}
+			body.Nodes = append(body.Nodes, Paragraph(content))
 		case LinePrefixLink:
 			// TODO: Extract to ParseLink function and check charset, etc.
-			url, label, found := strings.Cut(value, " ")
+			url, label, found := strings.Cut(value[1:], " ")
 			if !found {
 				return nil, r.WrapErr(ErrInvalidLink)
 			}
 			body.Nodes = append(body.Nodes, Link{url, label})
 		case LinePrefixListItem:
-			var list List
-			list = append(list, value)
+			list := List{value[1:]}
 			for {
 				line, typ, value, err = r.ReadBodyLine()
 				reachedEOF := errors.Is(err, io.EOF)
@@ -74,12 +81,11 @@ func ParseBody(r *Reader) (*Body, error) {
 				} else if len(line) >= 2 && line[1] != ' ' {
 					return nil, r.WrapErr(ErrBodyMissingSpaceAfterLineType)
 				}
-				value = value[1:]
-				list = append(list, value)
+				list = append(list, value[1:])
 			}
 			body.Nodes = append(body.Nodes, list)
 		case LinePrefixPreformatToggle:
-			alt := value
+			alt := value[1:]
 			content := ""
 			for {
 				line, typ, _, err = r.ReadBodyLine()
@@ -96,10 +102,8 @@ func ParseBody(r *Reader) (*Body, error) {
 				content += line + "\n"
 			}
 			body.Nodes = append(body.Nodes, PreformattedTextBlock{alt, content})
-		case LinePrefixText:
-			body.Nodes = append(body.Nodes, Text(value))
 		case LinePrefixTopic:
-			body.Nodes = append(body.Nodes, Topic(value))
+			body.Nodes = append(body.Nodes, Topic(value[1:]))
 		}
 	}
 
