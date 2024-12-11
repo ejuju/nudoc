@@ -15,7 +15,7 @@ rich-text documents using a simple syntax ressembling Gemtext and Markdown.
 Depending on the line's first character, the line will be rendered differently:
 
 - "@" for links.
-- "$" for setting the topic (title/heading). The first topic is usually the title of the document.
+- ">" for setting the topic (heading).
 - "=" for starting or ending a preformatted block.
 - Other lines are interpreted as "normal" text.
 
