@@ -9,13 +9,16 @@
         * { margin: 0; padding: 0; box-sizing: border-box; color: inherit; font-family: inherit; }
         body { background-color: #111; color: #eee; font-family: monospace; } 
         main { padding: 16px; max-width: 110ch; margin: 0 auto; }
+        main #top { padding-bottom: 24px; margin-bottom: 24px; border-bottom: 1px solid #ccc; }
+        main #top #date, main #top #tags { color: #aaa; }
         main a { margin-top: 0.5em; display: block; }
         main ul { margin: 0.5em 0 1em; list-style-position: inside; }
         main ul li { margin: 0.25em 0; }
 	    main h1 { margin: 1.5em 0 1em; color: #fff; }
 	    main h2 { margin: 1em 0 0.5em; }
 	    main p { margin-top: 16px; font-size: 100%; line-height: 1.5; min-height: 0.75em; }
-	    main .pre-block {
+	    main pre { padding: 8px; }
+	    main .pre-block, main .pre-line {
             margin: 8px 0 16px;
             background-color: #222;
             border-radius: 8px;
@@ -23,17 +26,19 @@
             background-color: #333;
             border-radius: 8px;
         }
-	    main .pre-block pre { padding: 8px; }
+	    main .pre-line pre { padding: 8px; }
+	    main .pre-line { display: flex; gap: 16px; padding: 8px; }
 	    main .pre-block .meta {
             padding: 8px;
             display: flex;
             align-items: baseline;
-            gap: 8px;
+            gap: 16px;
             color: #999;
             background-color: #444;
             border-radius: 0 0 8px 8px;
         }
-	    main .pre-block .meta button {
+	    main .pre-block button,
+	    main .pre-line button {
             cursor: pointer;
             border: none;
             background-color: transparent;
@@ -42,18 +47,7 @@
             border-radius: 8px;
             background-color: #555;
         }
-	    main .pre-block .meta button:active {
-            text-decoration: underline;
-        }
-        main #top { 
-            padding-bottom: 24px;
-            margin-bottom: 24px;
-            border-bottom: 1px solid #ccc;
-        }
-        main #date,
-        main #tags {
-            color: #aaa;
-        }
+	    main button:active { text-decoration: underline; }
     </style>
 </head>
 

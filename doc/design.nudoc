@@ -40,35 +40,57 @@ Lines that don't start with any of the reserved prefixes are simply parsed
 as regular text.
 
 | Reserved line are:
-- "# ": Topic line
-- "> ": Link line
-- "| ": List title line
-- "- ": List item line
-- "' ": Preformatted line
-- "* ": Line comment line
-- "```": Preformatted block toggle
-- "***": Multiline comment toggle (or footnote comment start marker)
+- Topic line ("# ")
+- Link line ("> ")
+- List title line ("| ")
+- List item line ("- ")
+- Preformatted line ("' ")
+- Line comment line ("* ")
+- Preformatted block toggle ("```")
+- Multiline comment toggle ("***")
 
 # Topics
 
 Topics are used to title a section of content.
+
 A topic is the second highest level of heading (like a HTML `<h2>`).
+
+``` nudoc
+# Bananas
+``` Example of a topic.
 
 Note that the document's name is used like a HTML `<h1>` and meta `<title>`.
 
 # Links
 
-Links are defined as follows:
+``` nudoc
+> /fruits/banana Learn more about bananas!
+``` Example of a link.
 
-' > /fruits/banana Learn more about bananas!
+Which gets rendered as:
+
+> /fruits/banana Learn more about bananas!
 
 # Comments
 
 If a line starts with "* ", consider the line to be a comment (until LF).
 
+For example:
+
+``` nudoc
+* TODO: Refactor.
+``` Example of a single line comment.
+
 Multiline comments and footnotes:
 if a line starts with "***", consider all next lines to be comments until "***" (or EOF)
 is encountered.
+
+``` nudoc
+***
+I'm a multiline comment.
+I can span over multiple lines!
+***
+``` Example of a multiline comment.
 
 Note that inline comments are deliberately not supported.
 
@@ -90,30 +112,12 @@ The syntax is the following:
 echo "Hello world!"
 echo "Bonjour monde!"
 """
-``` Just some example commands.
+``` Example of a preformatted block.
 
 Apart from the actual content some "metadata" may be useful for this block type:
 - Legend: short title to describe the preformatted block.
 - Alternative: alternative content for non-graphic rendering (required for a11y).
 - Content type: `html` or `json` for example for syntax hilighting.
-
-The content type can be included on the opening line:
-
-```
-""" bash
-echo "Hello world!"
-echo "Bonjour monde!"
-"""
-```
-
-The legend can be included on the closing line:
-
-```
-""" bash
-echo "Hello world!"
-echo "Bonjour monde!"
-""" Just some example commands.
-```
 
 Alternative content are be defined in a separate block. ????
 

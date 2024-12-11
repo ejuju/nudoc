@@ -96,6 +96,22 @@ func (n PreformattedTextBlock) HTML() template.HTML {
 		"</div>")
 }
 
+type PreformattedTextLine struct {
+	Content string
+}
+
+func (n PreformattedTextLine) NuDoc() string {
+	return string(SequencePreformatLine) + n.Content + "\n"
+}
+
+func (n PreformattedTextLine) Markdown() string { return "```\n" + n.Content + "\n```\n" }
+
+func (n PreformattedTextLine) HTML() template.HTML {
+	return template.HTML("<div class=\"pre-line\">\n" +
+		"<pre>\n" + n.Content + "</pre>\n" +
+		"</div>")
+}
+
 type Paragraph string
 
 func (n Paragraph) NuDoc() string    { return string(n) + "\n" }

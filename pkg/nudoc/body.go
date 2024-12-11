@@ -107,7 +107,7 @@ func ParseBody(r *Reader) (*Body, error) {
 			}
 			body.Nodes = append(body.Nodes, list)
 		case strings.HasPrefix(line, SequencePreformatLine):
-			body.Nodes = append(body.Nodes, &PreformattedTextBlock{Content: line[2:]})
+			body.Nodes = append(body.Nodes, &PreformattedTextLine{Content: line[2:]})
 		case strings.HasPrefix(line, SequencePreformatToggle):
 			typ := ""
 			typ = strings.TrimSpace(line[3:])
