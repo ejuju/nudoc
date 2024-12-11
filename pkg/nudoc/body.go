@@ -65,6 +65,8 @@ func ParseBody(r *Reader) (*Body, error) {
 					return nil, r.WrapErr(fmt.Errorf("on normal line: %w", err))
 				} else if line == "" {
 					break // Reached empty line.
+				} else if strings.HasPrefix(line, SequenceLineComment) {
+					continue
 				}
 				content += line + "\n"
 			}

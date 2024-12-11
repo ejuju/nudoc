@@ -5,6 +5,8 @@ Date: 2024-12-10
 Tags: nudoc, beginner, tutorial
 ---
 
+* TODO: Check for spelling and typos.
+
 This document is an introduction to the NuDoc hypertext format.
 
 NuDoc is a line-oriented format that allows you to define
@@ -127,9 +129,13 @@ They are useful when the preformatted content is a just a single-line-tall.
 
 The syntax is the following:
 
-""" nudoc
-''' echo "Hello world!"
-""" Example of a preformatted line.
+``` nudoc
+' echo "Hello world!"
+``` Example of a preformatted line.
+
+Which is rendered as:
+
+' echo "Hello world!"
 
 ***
 
