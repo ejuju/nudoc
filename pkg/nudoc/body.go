@@ -19,7 +19,7 @@ const (
 	SequenceListTitle              = "| "
 	SequenceListItem               = "- "
 	SequencePreformattedLine       = "' "
-	SequenceLineCommentLine        = "* "
+	SequenceLineComment            = "* "
 	SequencePreformatToggle        = "```"
 	SequenceMultilineCommentToggle = "***"
 )
@@ -38,12 +38,13 @@ var (
 
 func ParseBody(r *Reader) (*Body, error) {
 	body := &Body{}
+
 	for {
 		line, err := r.ReadLine()
-		// TODO: Check that EOF was not reached with an empty line,
-		// otherwise line is silently ignored.
+		// TODO: Ensure EOF was reached with an empty line,
+		// otherwise the line is silently ignored.
 		if errors.Is(err, io.EOF) {
-			break // Reached EOF.
+			return body, nil
 		} else if err != nil {
 			return nil, r.WrapErr(err)
 		} else if line == "" {
@@ -130,8 +131,20 @@ func ParseBody(r *Reader) (*Body, error) {
 			body.Nodes = append(body.Nodes, &PreformattedTextBlock{contentType, content, legend})
 		case strings.HasPrefix(line, SequenceTopic):
 			body.Nodes = append(body.Nodes, Topic(line[2:]))
+		case strings.HasPrefix(line, SequenceLineComment):
+			continue
+		case strings.HasPrefix(line, SequenceMultilineCommentToggle):
+			for {
+				line, err := r.ReadLine()
+				if errors.Is(err, io.EOF) {
+					return body, nil // Reached EOF.
+				} else if err != nil {
+					return nil, r.WrapErr(err)
+				} else if strings.HasPrefix(line, SequenceMultilineCommentToggle) {
+					break
+				}
+			}
+			continue
 		}
 	}
-
-	return body, nil
 }
