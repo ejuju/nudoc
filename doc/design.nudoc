@@ -46,6 +46,7 @@ as regular text.
 - List item line ("- ")
 - Preformatted line ("' ")
 - Line comment line ("* ")
+- Alternative content line ("~ ")
 - Preformatted block toggle ("```")
 - Multiline comment toggle ("***")
 
@@ -67,9 +68,25 @@ Note that the document's name is used like a HTML `<h1>` and meta `<title>`.
 > /fruits/banana Learn more about bananas!
 ``` Example of a link.
 
-Which gets rendered as:
+Which gets rendered as...
 
 > /fruits/banana Learn more about bananas!
+
+# Lists
+
+``` nudoc
+| My favorite fruits:
+- Banana
+- Apple
+- Strawberry
+``` Example of a list.
+
+Which gets rendered as...
+
+| My favorite fruits:
+- Banana
+- Apple
+- Strawberry
 
 # Comments
 
@@ -114,7 +131,7 @@ echo "Bonjour monde!"
 ```` Just some commands.
 ``` Example of a preformatted block.
 
-Rendered as:
+Which gets rendered as...
 
 ``` bash
 echo "Hello world!"
@@ -132,7 +149,7 @@ need metadata like the content type or legend, you may define it in a single lin
 ' echo "Hello world!"
 ``` Example of a preformatted line.
 
-Which is rendered as:
+Which gets rendered as...
 
 ' echo "Hello world!"
 
@@ -148,12 +165,10 @@ in a non-graphical context (ex: screen reader).
 ~ I may spread over multiple lines.
 ``` Example of a alternative block.
 
-Which gets rendered as:
+Which gets rendered as...
 
 ~ I'm alternative content.
 ~ I may spread over multiple lines.
-
-Note that if you're in a graphical environments you may not be presented this alternative content.
 
 ***
 
