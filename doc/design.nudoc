@@ -26,9 +26,10 @@ A topic is the second highest level of heading (like a HTML `<h2>`).
 
 Note that the document's name is used like a HTML `<h1>` and meta `<title>`.
 
-## Links
+# Links
 
 Links are defined as follows:
+
 ```
 > /fruits/banana Learn more about bananas!
 ```
@@ -55,6 +56,7 @@ Clients are also encouraged to make it easier for users to copy the preformatted
 by for instance, providing a "copy to clipboard" button or prompt.
 
 The syntax is the following:
+
 ```
 """
 echo "Hello world!"
@@ -68,6 +70,7 @@ Apart from the actual content some "metadata" may be useful for this block type:
 - Content type: `html` or `json` for example for syntax hilighting.
 
 The content type can be included on the opening line:
+
 ```
 """ bash
 echo "Hello world!"
@@ -76,6 +79,7 @@ echo "Bonjour monde!"
 ```
 
 The legend can be included on the closing line:
+
 ```
 """ bash
 echo "Hello world!"
@@ -83,12 +87,12 @@ echo "Bonjour monde!"
 """ Just some example commands.
 ```
 
-Alternative content are be defined in a separate block.
-- [#]()
+Alternative content are be defined in a separate block. ????
+
 The client should provide to easily skip the preformatted block if it doesn't make sense
 to the 
 
-## Preformatted line
+# Preformatted line
 
 A preformatted line is like a preformatted block but only requires a single line
 to be defined.
@@ -96,6 +100,7 @@ to be defined.
 They are useful when the preformatted content is a just a single-line-tall.
 
 The syntax is the following:
+
 ```
 ''' echo "Hello world!"
 ```
@@ -120,16 +125,3 @@ So that there's no "overhead" in terms of number of lines of code.
 
 We can use a different line prefix to indicate that the body section ended but that
 we must parse the alternative content.
-
-```
-''' json
-{"fruit": "banana"}
-=~= A JSON object with the a single field called "fruit" with a value of "banana".
-''' A dummy JSON example to demonstrate a preformatted block.
-```
-
-```
-''' json
-{"fruit": "banana"}
-''' A dummy JSON example to demonstrate a preformatted block.
-```

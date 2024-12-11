@@ -34,7 +34,7 @@ type Link struct {
 	Label string
 }
 
-func (n Link) NuDoc() string    { return string(LinePrefixLink) + " " + n.URL + " " + n.Label + "\n" }
+func (n Link) NuDoc() string    { return string(SequenceLink) + " " + n.URL + " " + n.Label + "\n" }
 func (n Link) Markdown() string { return "- [" + n.URL + "](" + n.Label + ")\n" }
 func (n Link) HTML() template.HTML {
 	return template.HTML("<a href=\"" + n.URL + "\">" + n.Label + "</a>")
@@ -46,9 +46,9 @@ type List struct {
 }
 
 func (n List) NuDoc() (v string) {
-	v += string(LinePrefixListTitle) + " " + n.Title + "\n"
+	v += string(SequenceListTitle) + " " + n.Title + "\n"
 	for _, item := range n.Items {
-		v += string(LinePrefixListItem) + " " + item + "\n"
+		v += string(SequenceListItem) + " " + item + "\n"
 	}
 	v += "\n"
 	return v
@@ -82,9 +82,9 @@ type PreformattedTextBlock struct {
 }
 
 func (n PreformattedTextBlock) NuDoc() string {
-	return string(LinePrefixPreformatToggle) + " " + n.AlternativeText + "\n" +
+	return string(SequencePreformatToggle) + " " + n.AlternativeText + "\n" +
 		n.Content + "\n" +
-		string(LinePrefixPreformatToggle) + "\n"
+		string(SequencePreformatToggle) + "\n"
 }
 
 func (n PreformattedTextBlock) Markdown() string { return "```\n" + n.Content + "\n```\n" }
@@ -101,11 +101,11 @@ type Paragraph string
 func (n Paragraph) NuDoc() string    { return string(n) + "\n" }
 func (n Paragraph) Markdown() string { return string(n) + "\n" }
 func (n Paragraph) HTML() template.HTML {
-	return template.HTML("<p>" + string(n) + "</p>")
+	return template.HTML("<p>" + html.EscapeString(string(n)) + "</p>")
 }
 
 type Topic string
 
-func (n Topic) NuDoc() string       { return string(LinePrefixTopic) + " " + string(n) + "\n" }
+func (n Topic) NuDoc() string       { return string(SequenceTopic) + " " + string(n) + "\n" }
 func (n Topic) Markdown() string    { return "## " + string(n) + "\n" }
 func (n Topic) HTML() template.HTML { return template.HTML("<h2>" + string(n) + "</h2>\n") }

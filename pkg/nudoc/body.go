@@ -8,11 +8,20 @@ import (
 )
 
 const (
-	LinePrefixLink            byte = '@'
-	LinePrefixListTitle       byte = '|'
-	LinePrefixListItem        byte = '-'
-	LinePrefixPreformatToggle byte = '='
-	LinePrefixTopic           byte = '>'
+	// 	LinePrefixLink            = "> "
+	// 	LinePrefixListTitle       = "| "
+	// 	LinePrefixListItem        = "- "
+	// 	LinePrefixPreformatToggle = "= "
+	// 	LinePrefixTopic           = "> "
+
+	SequenceTopic                  = "# "
+	SequenceLink                   = "> "
+	SequenceListTitle              = "| "
+	SequenceListItem               = "- "
+	SequencePreformattedLine       = "' "
+	SequenceLineCommentLine        = "* "
+	SequencePreformatToggle        = "```"
+	SequenceMultilineCommentToggle = "***"
 )
 
 type Body struct {
@@ -30,7 +39,7 @@ var (
 func ParseBody(r *Reader) (*Body, error) {
 	body := &Body{}
 	for {
-		line, typ, value, err := r.ReadBodyLine()
+		line, err := r.ReadLine()
 		// TODO: Check that EOF was not reached with an empty line,
 		// otherwise line is silently ignored.
 		if errors.Is(err, io.EOF) {
@@ -41,33 +50,42 @@ func ParseBody(r *Reader) (*Body, error) {
 			continue // Ignore empty line.
 		}
 
-		switch typ {
+		switch {
 		default:
 			content := line + "\n"
 			for {
 				line, err = r.ReadLine()
-				if errors.Is(err, io.EOF) && line != "" {
-					content += line + "\n"
-					break // Reached tolerated EOF with non-empty line.
+				if errors.Is(err, io.EOF) {
+					if line != "" {
+						content += line + "\n"
+					}
+					break
 				} else if err != nil {
-					return nil, r.WrapErr(err)
+					return nil, r.WrapErr(fmt.Errorf("on normal line: %w", err))
 				} else if line == "" {
 					break // Reached empty line.
 				}
 				content += line + "\n"
 			}
 			body.Nodes = append(body.Nodes, Paragraph(content))
-		case LinePrefixLink:
+		case strings.HasPrefix(line, SequenceLink):
 			// TODO: Extract to ParseLink function and check charset, etc.
-			url, label, found := strings.Cut(value[1:], " ")
+			if len(line) < 5 {
+				// Smallest possible line example "> / A".
+				return nil, r.WrapErr(errors.New("link line too short to be valid"))
+			}
+			url, label, found := strings.Cut(line[2:], " ")
 			if !found {
 				return nil, r.WrapErr(ErrInvalidLink)
 			}
 			body.Nodes = append(body.Nodes, Link{url, label})
-		case LinePrefixListTitle:
-			list := List{Title: value[1:]}
+		case strings.HasPrefix(line, SequenceListTitle):
+			if len(line) < len("| A") {
+				return nil, r.WrapErr(errors.New("list title line too short to be valid"))
+			}
+			list := List{Title: line[2:]}
 			for {
-				line, typ, value, err = r.ReadBodyLine()
+				line, err = r.ReadLine()
 				reachedEOF := errors.Is(err, io.EOF)
 				if reachedEOF && line == "" {
 					break // Reached EOF with empty line.
@@ -77,24 +95,27 @@ func ParseBody(r *Reader) (*Body, error) {
 					return nil, r.WrapErr(err)
 				} else if line == "" && !reachedEOF {
 					break // Reached end of list.
-				} else if typ != LinePrefixListItem {
-					return nil, r.WrapErr(fmt.Errorf("unexpected list item type %q", typ))
-				} else if len(line) >= 2 && line[1] != ' ' {
-					return nil, r.WrapErr(ErrBodyMissingSpaceAfterLineType)
+				} else if !strings.HasPrefix(line, SequenceListItem) {
+					return nil, r.WrapErr(fmt.Errorf("not a list item line"))
+				} else if len(line) < len("- A") {
+					return nil, r.WrapErr(errors.New("list line too short to be valid"))
 				}
-				list.Items = append(list.Items, value[1:])
+				list.Items = append(list.Items, line[2:])
 			}
 			body.Nodes = append(body.Nodes, list)
-		case LinePrefixPreformatToggle:
-			contentType := value[1:]
+		case strings.HasPrefix(line, SequencePreformatToggle):
+			contentType := ""
+			if len(line) > len(SequencePreformatToggle) {
+				contentType = strings.TrimSpace(line[3:])
+			}
 			content := ""
-			alt := ""
+			legend := ""
 			for {
-				line, typ, _, err = r.ReadBodyLine()
+				line, err = r.ReadLine()
 				reachedEOF := errors.Is(err, io.EOF)
-				if typ == LinePrefixPreformatToggle {
-					if len(line) > 2 {
-						alt = line[2:]
+				if strings.HasPrefix(line, SequencePreformatToggle) {
+					if len(line) > len(SequencePreformatToggle) {
+						legend = strings.TrimSpace(line[3:])
 					}
 					break // Reached end of preformatted block.
 				} else if reachedEOF && line == "" {
@@ -106,9 +127,9 @@ func ParseBody(r *Reader) (*Body, error) {
 				}
 				content += line + "\n"
 			}
-			body.Nodes = append(body.Nodes, &PreformattedTextBlock{contentType, content, alt})
-		case LinePrefixTopic:
-			body.Nodes = append(body.Nodes, Topic(value[1:]))
+			body.Nodes = append(body.Nodes, &PreformattedTextBlock{contentType, content, legend})
+		case strings.HasPrefix(line, SequenceTopic):
+			body.Nodes = append(body.Nodes, Topic(line[2:]))
 		}
 	}
 

@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	f, err := os.Open("examples/demo/intro.nudoc")
+	f, err := os.Open("doc/design.nudoc")
 	if err != nil {
 		log.Fatal(err)
 	}

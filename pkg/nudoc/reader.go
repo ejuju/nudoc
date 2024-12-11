@@ -40,17 +40,3 @@ func (r *Reader) ReadLine() (string, error) {
 	r.line++
 	return strings.TrimRight(line, "\r\n"), nil
 }
-
-// Reads a line and trims trailing (CR and) LF characters.
-// Extracts the line type and value.
-func (r *Reader) ReadBodyLine() (line string, typ byte, value string, err error) {
-	line, err = r.ReadLine()
-	if err != nil {
-		return "", 0, "", err
-	} else if line == "" {
-		return "", 0, "", nil
-	}
-	typ = line[0]
-	value = line[1:]
-	return line, typ, value, nil
-}
