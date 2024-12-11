@@ -35,6 +35,7 @@ Depending on the line's first character, the line will be rendered differently:
 
 - "@" for links.
 - ">" for setting the topic (heading).
+- "-" for list items.
 - "=" for starting or ending a preformatted block.
 - Other lines are interpreted as "normal" text.
 
