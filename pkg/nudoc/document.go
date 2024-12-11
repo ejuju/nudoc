@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html"
 	"html/template"
+	"strings"
 )
 
 type Document struct {
@@ -119,6 +120,14 @@ func (n Paragraph) Markdown() string { return string(n) + "\n" }
 func (n Paragraph) HTML() template.HTML {
 	return template.HTML("<p>" + html.EscapeString(string(n)) + "</p>")
 }
+
+type Alternative string
+
+func (n Alternative) NuDoc() string {
+	return SequenceAlternative + strings.ReplaceAll(string(n), "\n", "\n"+SequenceAlternative) + "\n"
+}
+func (n Alternative) Markdown() string    { return "<!-- " + string(n) + " -->\n" }
+func (n Alternative) HTML() template.HTML { return template.HTML("<!-- " + string(n) + " -->\n") }
 
 type Topic string
 

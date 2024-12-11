@@ -14,6 +14,7 @@ const (
 	SequenceListItem               = "- "
 	SequencePreformatLine          = "' "
 	SequenceLineComment            = "* "
+	SequenceAlternative            = "~ "
 	SequencePreformatToggle        = "``` "
 	SequenceMultilineCommentToggle = "***"
 )
@@ -127,6 +128,30 @@ func ParseBody(r *Reader) (*Body, error) {
 			body.Nodes = append(body.Nodes, &PreformattedTextBlock{typ, content, legend})
 		case strings.HasPrefix(line, SequenceTopic):
 			body.Nodes = append(body.Nodes, Topic(line[2:]))
+		case strings.HasPrefix(line, SequenceAlternative):
+			if len(line) < len("~ A") {
+				return nil, r.WrapErr(errors.New("alternative line too short to be valid"))
+			}
+			content := line[2:]
+			for {
+				line, err = r.ReadLine()
+				reachedEOF := errors.Is(err, io.EOF)
+				if reachedEOF && line == "" {
+					break // Reached EOF with empty line.
+				} else if reachedEOF && line != "" {
+					return nil, r.WrapErr(ErrBodyMissingTrailingLF) // Reached EOF with non-empty line.
+				} else if err != nil {
+					return nil, r.WrapErr(err)
+				} else if line == "" && !reachedEOF {
+					break // Reached end of list.
+				} else if !strings.HasPrefix(line, SequenceAlternative) {
+					return nil, r.WrapErr(fmt.Errorf("not an alternative list item"))
+				} else if len(line) < len("~ A") {
+					return nil, r.WrapErr(errors.New("alternative line too short to be valid"))
+				}
+				content += line[2:]
+			}
+			body.Nodes = append(body.Nodes, Alternative(content))
 		case strings.HasPrefix(line, SequenceLineComment):
 			continue
 		case strings.HasPrefix(line, SequenceMultilineCommentToggle):

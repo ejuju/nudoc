@@ -94,7 +94,7 @@ I can span over multiple lines!
 
 Note that inline comments are deliberately not supported.
 
-# Preformatted blocks
+# Preformatted blocks and lines
 
 A preformatted text block is simply text that is rendered "as is" in a monospace font.
 They are similar to HTML peformatted tags (`<pre>`) tag and Markdown triple backticks ` ``` `.
@@ -121,25 +121,12 @@ echo "Hello world!"
 echo "Bonjour monde!"
 ``` Just some commands.
 
+In non-graphical environments, the client should provide to easily skip the 
+preformatted block if it doesn't make sense to the client.
+Note that alternative content can be defined in a separate block type (see "Alternative blocks").
 
-Apart from the actual content some "metadata" may be useful for this block type:
-- Legend: short title to describe the preformatted block.
-- Alternative: alternative content for non-graphic rendering (required for a11y).
-- Content type: `html` or `json` for example for syntax hilighting.
-
-Alternative content are be defined in a separate block. ????
-
-The client should provide to easily skip the preformatted block if it doesn't make sense
-to the 
-
-# Preformatted lines
-
-A preformatted line is like a preformatted block but only requires a single line
-to be defined.
-
-They are useful when the preformatted content is a just a single-line-tall.
-
-The syntax is the following:
+For convenience, when the preformatted content is a just a single-line-tall and you don't
+need metadata like the content type or legend, you may define it in a single line:
 
 ``` nudoc
 ' echo "Hello world!"
@@ -149,9 +136,24 @@ Which is rendered as:
 
 ' echo "Hello world!"
 
-# Alernative blocks
+# Alternative blocks
 
-Alternative blocks are meant to be
+Alternative blocks are meant to be presented to the user only in non-graphical environments.
+
+You may use them after defining preformatted content that may not be easily understandable
+in a non-graphical context (ex: screen reader).
+
+``` nudoc
+~ I'm alternative content.
+~ I may spread over multiple lines.
+``` Example of a alternative block.
+
+Which gets rendered as:
+
+~ I'm alternative content.
+~ I may spread over multiple lines.
+
+Note that if you're in a graphical environments you may not be presented this alternative content.
 
 ***
 
