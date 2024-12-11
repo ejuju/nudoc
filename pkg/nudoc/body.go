@@ -8,19 +8,13 @@ import (
 )
 
 const (
-	// 	LinePrefixLink            = "> "
-	// 	LinePrefixListTitle       = "| "
-	// 	LinePrefixListItem        = "- "
-	// 	LinePrefixPreformatToggle = "= "
-	// 	LinePrefixTopic           = "> "
-
 	SequenceTopic                  = "# "
 	SequenceLink                   = "> "
 	SequenceListTitle              = "| "
 	SequenceListItem               = "- "
 	SequencePreformatLine          = "' "
 	SequenceLineComment            = "* "
-	SequencePreformatToggle        = "```"
+	SequencePreformatToggle        = "``` "
 	SequenceMultilineCommentToggle = "***"
 )
 
@@ -125,6 +119,8 @@ func ParseBody(r *Reader) (*Body, error) {
 					return nil, r.WrapErr(ErrBodyMissingTrailingLF) // Reached EOF with non-empty line.
 				} else if err != nil {
 					return nil, r.WrapErr(err)
+				} else if strings.HasPrefix(line, "````") {
+					line = line[1:] // Unescape "````" to "```".
 				}
 				content += line + "\n"
 			}
