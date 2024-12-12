@@ -67,16 +67,11 @@ func ParseBody(r *Reader) (*Body, error) {
 			}
 			body.Nodes = append(body.Nodes, Paragraph(content))
 		case strings.HasPrefix(line, SequenceLink):
-			// TODO: Extract to ParseLink function and check charset, etc.
-			if len(line) < 5 {
-				// Smallest possible line example "> / A".
-				return nil, r.WrapErr(errors.New("link line too short to be valid"))
+			node, err := parseLink(line)
+			if err != nil {
+				return nil, r.WrapErr(err)
 			}
-			url, label, found := strings.Cut(line[2:], " ")
-			if !found {
-				return nil, r.WrapErr(ErrInvalidLink)
-			}
-			body.Nodes = append(body.Nodes, Link{url, label})
+			body.Nodes = append(body.Nodes, node)
 		case strings.HasPrefix(line, SequenceListTitle):
 			if len(line) < len("| A") {
 				return nil, r.WrapErr(errors.New("list title line too short to be valid"))
@@ -127,7 +122,11 @@ func ParseBody(r *Reader) (*Body, error) {
 			}
 			body.Nodes = append(body.Nodes, &PreformattedTextBlock{typ, content, legend})
 		case strings.HasPrefix(line, SequenceTopic):
-			body.Nodes = append(body.Nodes, Topic(line[2:]))
+			node, err := parseTopic(line)
+			if err != nil {
+				return nil, r.WrapErr(err)
+			}
+			body.Nodes = append(body.Nodes, node)
 		case strings.HasPrefix(line, SequenceAlternative):
 			if len(line) < len("~ A") {
 				return nil, r.WrapErr(errors.New("alternative line too short to be valid"))
@@ -168,4 +167,27 @@ func ParseBody(r *Reader) (*Body, error) {
 			continue
 		}
 	}
+}
+
+func parseTopic(line string) (Topic, error) {
+	if !strings.HasPrefix(line, SequenceTopic) {
+		return "", errors.New("invalid topic start sequence")
+	} else if len(line) < len(SequenceTopic)+1 {
+		return "", errors.New("missing topic value")
+	}
+	return Topic(line[2:]), nil
+}
+
+func parseLink(line string) (*Link, error) {
+	if !strings.HasPrefix(line, SequenceLink) {
+		return nil, errors.New("invalid link start sequence")
+	} else if len(line) < len(SequenceLink)+1+1+1 {
+		return nil, errors.New("invalid link value")
+	}
+	url, label, found := strings.Cut(line[2:], " ")
+	if !found {
+		return &Link{URL: url, Label: url}, nil
+	}
+	// TODO: Check charset.
+	return &Link{URL: url, Label: label}, nil
 }

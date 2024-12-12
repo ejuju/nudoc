@@ -13,6 +13,15 @@ NuDoc is a line-oriented format that allows you to define
 rich-text documents using a simple syntax.
 NuDoc is mainly inspired from Markdown, Gemtext and HTML.
 
+| Element types:
+- Regular text
+- Heading (= topic)
+- Link
+- List
+- Peformatted
+- Alternative (for a11y and non-graphical rendering environments)
+- Comment (not rendered)
+
 # Document header
 
 | Documents must start with a header containing key-value pairs that define metadata such as:
@@ -66,11 +75,23 @@ Note that the document's name is used like a HTML `<h1>` and meta `<title>`.
 
 ``` nudoc
 > /fruits/banana Learn more about bananas!
+> https://example.org Visit example.org
 ``` Example of a link.
 
 Which gets rendered as...
 
 > /fruits/banana Learn more about bananas!
+> https://example.org Visit example.org
+
+Links without labels are also supported for convenience.
+
+``` nudoc
+> https://example.org
+``` Example of a link without a label.
+
+Which gets rendered as...
+
+> https://example.org
 
 # Lists
 
